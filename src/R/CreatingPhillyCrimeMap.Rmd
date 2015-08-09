@@ -1,0 +1,173 @@
+---
+title: "Crime in Philadelphia"
+author: "Mike Chirico mchirico@gmail.com"
+date: "August 9, 2015"
+source: <https://github.com/mchirico/crime>
+---
+
+[Source](https://github.com/mchirico/crime)
+
+```{r}
+suppressMessages(library(dplyr))
+library(tidyr)
+suppressMessages(library(ggmap))
+library(ggplot2)
+library(readr)
+library(lubridate)
+library(reshape2)
+suppressMessages(library(scales)) 
+
+
+# Reading in the data
+library(RCurl)
+File <- getURL("https://raw.githubusercontent.com/mchirico/crime/master/data/philly_crime.csv")
+d <- read.csv(text = File,header=TRUE,stringsAsFactors=FALSE)
+wd<-function(x) as.POSIXct(strptime(x, '%Y-%m-%d %H:%M:%S',tz='GMT'))
+d$mdate = wd(d$DISPATCH_DATE_TIME)
+# Remove na's
+d=d[complete.cases(d[4:5]),]
+
+# This just make it easier to read
+d=tbl_df(d)
+
+# Date range (2006 to 2015 Aug)
+max(d$mdate)
+min(d$mdate)
+
+# Okay, rank the classification of crime in Philadelphia
+counts <- summarise(group_by(d, TEXT_GENERAL_CODE), Counts=length(TEXT_GENERAL_CODE))
+counts <- counts[order(-counts$Counts),]
+counts
+
+# Top 6 cimes:
+#********************************************
+#     Thefts 242754
+#     Theft from Vehicle 129652
+#     Burglary Residential  85375
+#     Aggravated Assault No Firearm  60747
+#     Robbery No Firearm 46160
+#     Motor Vehicle Theft  45897
+
+# Let's take a look at these top 6. They're listed separately in a grep
+# so you can remove or add categories as you wish. We'll store everything
+# in a variable x.
+x <- filter(d,
+         grepl('Thefts',TEXT_GENERAL_CODE) |
+         grepl('Theft from Vehicle',TEXT_GENERAL_CODE) |
+         grepl('Burglary Residential',TEXT_GENERAL_CODE) |  
+         grepl('Aggravated Assault No Firearm',TEXT_GENERAL_CODE)|
+           grepl('Robbery No Firearm',TEXT_GENERAL_CODE)|
+          grepl('Motor Vehicle Theft',TEXT_GENERAL_CODE))
+
+
+# Okay, let's break the data down by week. Total number of crimes
+# in a week
+
+x$week = floor_date(x$mdate, "week")
+# Other options?
+#  x$month = floor_date(x$mdate, "month")
+#  x$year = floor_date(x$mdate, "year")
+
+z=x %>%
+ group_by(week,TEXT_GENERAL_CODE) %>%  
+ summarise(count = n())
+
+# Quick Check
+z=tbl_df(z)
+head(z)
+
+# Okay, let's graph this.
+
+ggplot(z,aes(y=count,x=as.Date(week),
+  colour = TEXT_GENERAL_CODE,group = TEXT_GENERAL_CODE))+
+  geom_line()+scale_x_date(labels = date_format("%Y-%m")) + 
+  ggtitle("Crime in Philadelphia (2006 - 2015)")+
+  guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Type of Crime"))+
+  labs(x="Weekly Totals",y="Count")
+
+
+# This is a bit confusing. Is crime increasing or decreasing? 
+# Let's combine the top 6, then, graph it out.
+
+z=x %>%
+ group_by(week) %>%  
+ summarise(count = n())
+
+ggplot(z,aes(y=count,x=as.Date(week)))+
+  geom_line()+scale_x_date(labels = date_format("%Y-%m")) + 
+  geom_smooth()+
+  ggtitle("Crime in Philadelphia (2006 - 2015)")+
+  guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Top 6 Combined"))+
+  labs(x="Weekly Totals",y="Count")
+
+# Hmm... This seems to show it's on the decline
+
+
+```
+
+# Maps
+
+```{r}
+# You can create map where every you like
+
+map0 <- qmap("cheltenham pa", color="bw", fill = FALSE, add = TRUE,zoom = 13,legend = 'topleft')
+map1 <- qmap("philadelphia", color="bw", fill = FALSE, add = TRUE,zoom = 14,legend = 'topleft')
+
+# Repeat filter from above...makes it easier to modify
+x <- filter(d,
+         grepl('Thefts',TEXT_GENERAL_CODE) |
+         grepl('Theft from Vehicle',TEXT_GENERAL_CODE) |
+         grepl('Burglary Residential',TEXT_GENERAL_CODE) |  
+         grepl('Aggravated Assault No Firearm',TEXT_GENERAL_CODE)|
+           grepl('Robbery No Firearm',TEXT_GENERAL_CODE)|
+          grepl('Motor Vehicle Theft',TEXT_GENERAL_CODE))
+
+
+# Let's try this with the first map
+p <- map0 +
+     geom_point(data=x, aes(x=POINT_X, y=POINT_Y, 
+                               color=factor(TEXT_GENERAL_CODE)), alpha=0.85) +
+     guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Type of Crime")) +
+   scale_colour_brewer(type="sequential",palette="Set3") + 
+       ggtitle("Crime in Philadelphia") +
+     theme_light(base_size=20) +
+     theme(axis.line=element_blank(),
+           axis.text.x=element_blank(),
+           axis.text.y=element_blank(),
+           axis.ticks=element_blank(),
+           axis.title.x=element_blank(),
+           axis.title.y=element_blank())
+
+
+
+# To save image (Note may need to install.packages("Cairo")
+#ggsave(p, file="map0.png", scale=2)
+p
+
+
+# Taking a look at this data with the 2nd map
+
+p <- map1 +
+     geom_point(data=x, aes(x=POINT_X, y=POINT_Y, 
+                               color=factor(TEXT_GENERAL_CODE)), alpha=0.85) +
+     guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Type of Crime")) +
+   scale_colour_brewer(type="sequential",palette="Set3") + 
+       ggtitle("Crime in Philadelphia") +
+     theme_light(base_size=20) +
+     theme(axis.line=element_blank(),
+           axis.text.x=element_blank(),
+           axis.text.y=element_blank(),
+           axis.ticks=element_blank(),
+           axis.title.x=element_blank(),
+           axis.title.y=element_blank())
+
+#ggsave(p, file="map1.png", scale=2)
+p
+
+
+
+```
