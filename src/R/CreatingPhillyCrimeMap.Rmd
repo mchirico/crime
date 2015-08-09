@@ -132,7 +132,7 @@ p <- map0 +
      guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
                                   title="Type of Crime")) +
    scale_colour_brewer(type="sequential",palette="Set3") + 
-       ggtitle("Crime in Philadelphia") +
+       ggtitle("Crime in North Philadelphia") +
      theme_light(base_size=20) +
      theme(axis.line=element_blank(),
            axis.text.x=element_blank(),
@@ -171,3 +171,64 @@ p
 
 
 ```
+
+
+#Animated Maps
+
+
+```{r}
+
+# Repeat filter from above...makes it easier to modify
+x <- filter(d,
+         grepl('Thefts',TEXT_GENERAL_CODE) |
+         grepl('Theft from Vehicle',TEXT_GENERAL_CODE) |
+         grepl('Burglary Residential',TEXT_GENERAL_CODE) |  
+         grepl('Aggravated Assault No Firearm',TEXT_GENERAL_CODE)|
+           grepl('Robbery No Firearm',TEXT_GENERAL_CODE)|
+          grepl('Motor Vehicle Theft',TEXT_GENERAL_CODE))
+
+nrow(x)
+# There are 610585 rows
+
+# We want 30 images, so each image will contain
+ceiling(610585/30)
+# 20353
+
+library(animation)
+
+
+trace.animate <- function() {
+
+ for (i in 1:30) {  
+  n=i*20353
+  tt=x[1:n,]
+  LableDate <- ifelse(!is.na(max(tt$DISPATCH_DATE_TIME)),max(tt$DISPATCH_DATE_TIME),"")
+  p=map +
+     geom_point(data=tt, aes(x=POINT_X, y=POINT_Y, 
+                               color=factor(TEXT_GENERAL_CODE)), alpha=0.85) +
+     guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Type of Crime")) +
+   scale_colour_brewer(type="sequential",palette="Set1") + 
+       ggtitle(paste("Crime North Philadelphia",LableDate,sep=" ")) +
+     theme_light(base_size=20) +
+     theme(axis.line=element_blank(),
+           axis.text.x=element_blank(),
+           axis.text.y=element_blank(),
+           axis.ticks=element_blank(),
+           axis.title.x=element_blank(),
+           axis.title.y=element_blank())
+
+  print(p)
+}
+  
+}
+
+saveGIF(trace.animate(), interval = .4, movie.name="cheltenhamPhilly.gif",ani.width = 1200, ani.height = 1200)
+
+
+
+
+
+```
+
+
