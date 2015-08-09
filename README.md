@@ -29,4 +29,6 @@ d=d[complete.cases(d[4:5]),]
 
 ```
 
+For a more detail, see the following
+![Analyzing Philadelphia Crime Data](https://github.com/mchirico/crime/wiki/Analyzing-Philadelphia-Crime-Data)
 
