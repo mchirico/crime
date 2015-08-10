@@ -1,0 +1,6 @@
+
+You're playing around with large files. Sooner or later, something
+is going to explode.
+
+  git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch data/san_francisco2006_crime.csv' HEAD
+
