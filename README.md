@@ -6,6 +6,9 @@ This project tries to leverage that data and show patterns.
 The direct source for this data is
 [OpenDataPhilly](https://www.opendataphilly.org/dataset/philadelphia-police-part-one-crime-incidents)
 
+
+
+![alt tag](https://github.com/mchirico/crime/blob/master/images/cheltenhamPhillyRed.gif)
 ![alt tag](https://github.com/mchirico/crime/blob/master/images/cheltenhamPhilly.gif)
 
 
