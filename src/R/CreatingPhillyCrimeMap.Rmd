@@ -231,4 +231,68 @@ saveGIF(trace.animate(), interval = .4, movie.name="cheltenhamPhilly.gif",ani.wi
 
 ```
 
+# Getting a feel for the data
+So what goes on in a very small area. Try zeoring in on a particular area
+
+
+```{r}
+
+map <- qmap("West Oak Lane, pa", color="bw", fill = FALSE, add = TRUE,zoom = 15,legend = 'topleft')
+map
+
+
+library(animation)
+
+(2014-2006)*12+6
+# 102 (Number of months)
+
+nrow(x)
+# 610585
+ceiling(610585/102)
+# 5987
+
+# Create an animation with 102 frames, which will
+# correspond to each month, for all the data starting
+# at the beginning of 2006 and ending 2015 (July apx)
+
+trace.animate <- function() {
+
+ for (i in 1:102) {  
+  n=i*5987
+  tt=x[1:n,]
+  LableDate <- ifelse(!is.na(max(tt$DISPATCH_DATE_TIME)),max(tt$DISPATCH_DATE_TIME),"")
+  p=map +
+     geom_point(data=tt, aes(x=POINT_X, y=POINT_Y, 
+                               color=factor(TEXT_GENERAL_CODE)), alpha=0.85) +
+     guides(colour = guide_legend(override.aes = list(alpha=1.0, size=6.0),
+                                  title="Type of Crime")) +
+   scale_colour_brewer(type="sequential",palette="Set1") + 
+       ggtitle(paste("West Oak Lane, Philadelphia",LableDate,sep=" ")) +
+     theme_light(base_size=20) +
+     theme(axis.line=element_blank(),
+           axis.text.x=element_blank(),
+           axis.text.y=element_blank(),
+           axis.ticks=element_blank(),
+           axis.title.x=element_blank(),
+           axis.title.y=element_blank())
+
+  print(p)
+}
+  
+}
+
+# This is going to take 5 to 10 minutes...maybe longer.
+saveGIF(trace.animate(), interval = .9, movie.name="WestOakLanePA.gif",ani.width = 1200, ani.height = 1200)
+
+
+
+
+
+
+
+
+
+
+```
+
 
