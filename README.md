@@ -8,7 +8,7 @@ The direct source for this data is
 
 
 
-![alt tag](https://github.com/mchirico/crime/blob/master/images/cheltenhamPhillyRedBig.gif)
+![alt tag](https://github.com/mchirico/crime/blob/master/images/cheltenhamPhillyRed.gif)
 ![alt tag](https://github.com/mchirico/crime/blob/master/images/cheltenhamPhilly.gif)
 
 
